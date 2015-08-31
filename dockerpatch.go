@@ -2,9 +2,11 @@ package dockerpatch
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"strings"
 
+	"github.com/docker/docker/builder/command"
 	"github.com/docker/docker/builder/parser"
 )
 
@@ -45,4 +47,81 @@ func (d *Dockerfile) String() string {
 		lines = append(lines, child.Original)
 	}
 	return strings.Join(lines, "\n")
+}
+
+// PrependNode attach a new node on first position of the AST
+func (d *Dockerfile) PrependNode(node *parser.Node) error {
+	d.root.Children = append([]*parser.Node{node}, d.root.Children...)
+	return nil
+}
+
+// AppendNode attach a new node on last position of the AST
+func (d *Dockerfile) AppendNode(node *parser.Node) error {
+	d.root.Children = append(d.root.Children, node)
+	return nil
+}
+
+// RemoveNodesByType removes all nodes of a specific type from the AST
+func (d *Dockerfile) RemoveNodesByType(nodeType string) error {
+	newChildren := []*parser.Node{}
+	for _, node := range d.root.Children {
+		if node.Value != nodeType {
+			newChildren = append(newChildren, node)
+		}
+	}
+	d.root.Children = newChildren
+	return nil
+}
+
+// SetFrom sets the current FROM
+func (d *Dockerfile) SetFrom(from string) error {
+	if err := d.RemoveNodesByType(command.From); err != nil {
+		return err
+	}
+
+	return d.PrependLine(fmt.Sprintf("FROM %s", from))
+}
+
+// ParseLine returns an AST node based on a line
+func ParseLine(line string) (*parser.Node, error) {
+	tmp, err := DockerfileFromString(line)
+	if err != nil {
+		return nil, err
+	}
+	return tmp.root.Children[0], nil
+}
+
+// GetFrom returns the current FROM
+func (d *Dockerfile) From() string {
+	for _, node := range d.root.Children {
+		if node.Value == command.From {
+			return strings.Split(node.Original, " ")[1]
+		}
+	}
+	return ""
+}
+
+// Length returns length of the AST
+func (d *Dockerfile) Length() int {
+	return len(d.root.Children)
+}
+
+// AppendLine parses and appends a new line to the AST
+func (d *Dockerfile) AppendLine(line string) error {
+	node, err := ParseLine(line)
+	if err != nil {
+		return err
+	}
+
+	return d.AppendNode(node)
+}
+
+// PrependLine parses and prepends a new line to the AST
+func (d *Dockerfile) PrependLine(line string) error {
+	node, err := ParseLine(line)
+	if err != nil {
+		return err
+	}
+
+	return d.PrependNode(node)
 }

@@ -85,3 +85,158 @@ func TestDockerfile_New(t *testing.T) {
 		So(dockerfile, ShouldNotBeNil)
 	})
 }
+
+func TestDockerfile_AppendNode(t *testing.T) {
+	Convey("Testing Dockerfile.AppendNode()", t, func() {
+		dockerfile := DockerfileNew()
+		So(dockerfile, ShouldNotBeNil)
+		So(dockerfile.Length(), ShouldEqual, 0)
+
+		for i := 0; i < 10; i++ {
+			node, err := ParseLine(fmt.Sprintf("RUN echo %d", i))
+			So(err, ShouldBeNil)
+
+			err = dockerfile.AppendNode(node)
+			So(err, ShouldBeNil)
+			So(dockerfile.Length(), ShouldEqual, i+1)
+		}
+
+		So(dockerfile.Length(), ShouldEqual, 10)
+		expected := `RUN echo 0
+RUN echo 1
+RUN echo 2
+RUN echo 3
+RUN echo 4
+RUN echo 5
+RUN echo 6
+RUN echo 7
+RUN echo 8
+RUN echo 9`
+		So(dockerfile.String(), ShouldEqual, expected)
+	})
+}
+
+func TestDockerfile_PrependNode(t *testing.T) {
+	Convey("Testing Dockerfile.PrependNode()", t, func() {
+		dockerfile := DockerfileNew()
+		So(dockerfile, ShouldNotBeNil)
+		So(dockerfile.Length(), ShouldEqual, 0)
+
+		for i := 0; i < 10; i++ {
+			node, err := ParseLine(fmt.Sprintf("RUN echo %d", i))
+			So(err, ShouldBeNil)
+
+			err = dockerfile.PrependNode(node)
+			So(err, ShouldBeNil)
+			So(dockerfile.Length(), ShouldEqual, i+1)
+		}
+
+		So(dockerfile.Length(), ShouldEqual, 10)
+		expected := `RUN echo 9
+RUN echo 8
+RUN echo 7
+RUN echo 6
+RUN echo 5
+RUN echo 4
+RUN echo 3
+RUN echo 2
+RUN echo 1
+RUN echo 0`
+		So(dockerfile.String(), ShouldEqual, expected)
+	})
+}
+
+func TestDockerfile_AppendLine(t *testing.T) {
+	Convey("Testing Dockerfile.AppendLine()", t, func() {
+		dockerfile := DockerfileNew()
+		So(dockerfile, ShouldNotBeNil)
+		So(dockerfile.Length(), ShouldEqual, 0)
+
+		for i := 0; i < 10; i++ {
+			err := dockerfile.AppendLine(fmt.Sprintf("RUN echo %d", i))
+			So(err, ShouldBeNil)
+			So(dockerfile.Length(), ShouldEqual, i+1)
+		}
+
+		So(dockerfile.Length(), ShouldEqual, 10)
+		expected := `RUN echo 0
+RUN echo 1
+RUN echo 2
+RUN echo 3
+RUN echo 4
+RUN echo 5
+RUN echo 6
+RUN echo 7
+RUN echo 8
+RUN echo 9`
+		So(dockerfile.String(), ShouldEqual, expected)
+	})
+}
+
+func TestDockerfile_PrependLine(t *testing.T) {
+	Convey("Testing Dockerfile.PrependLine()", t, func() {
+		dockerfile := DockerfileNew()
+		So(dockerfile, ShouldNotBeNil)
+		So(dockerfile.Length(), ShouldEqual, 0)
+
+		for i := 0; i < 10; i++ {
+			err := dockerfile.PrependLine(fmt.Sprintf("RUN echo %d", i))
+			So(err, ShouldBeNil)
+			So(dockerfile.Length(), ShouldEqual, i+1)
+		}
+
+		So(dockerfile.Length(), ShouldEqual, 10)
+		expected := `RUN echo 9
+RUN echo 8
+RUN echo 7
+RUN echo 6
+RUN echo 5
+RUN echo 4
+RUN echo 3
+RUN echo 2
+RUN echo 1
+RUN echo 0`
+		So(dockerfile.String(), ShouldEqual, expected)
+	})
+}
+
+func TestDockerfile_RemoveNodesByType(t *testing.T) {
+	Convey("Testing Dockerfile.RemoveNodesByType", t, func() {
+		dockerfile, err := DockerfileFromString(ExampleDockerfile)
+		So(err, ShouldBeNil)
+		So(dockerfile.root, ShouldNotBeNil)
+		So(dockerfile.root.Dump(), ShouldEqual, ExampleDockerfileDump)
+	})
+}
+
+func TestDockerfile(t *testing.T) {
+	Convey("Testing Dockerfile", t, func() {
+		dockerfile := DockerfileNew()
+		So(dockerfile, ShouldNotBeNil)
+		So(dockerfile.String(), ShouldEqual, "")
+		So(dockerfile.Length(), ShouldEqual, 0)
+		So(dockerfile.From(), ShouldEqual, "")
+
+		err := dockerfile.SetFrom("ubuntu:latest")
+		So(err, ShouldBeNil)
+		So(dockerfile.String(), ShouldEqual, "FROM ubuntu:latest")
+		So(dockerfile.Length(), ShouldEqual, 1)
+		So(dockerfile.From(), ShouldEqual, "ubuntu:latest")
+
+		err = dockerfile.SetFrom("debian")
+		So(err, ShouldBeNil)
+		So(dockerfile.String(), ShouldEqual, "FROM debian")
+		So(dockerfile.Length(), ShouldEqual, 1)
+		So(dockerfile.From(), ShouldEqual, "debian")
+
+		err = dockerfile.AppendLine("RUN echo hello world")
+		So(err, ShouldBeNil)
+		So(dockerfile.String(), ShouldEqual, "FROM debian\nRUN echo hello world")
+		So(dockerfile.Length(), ShouldEqual, 2)
+
+		err = dockerfile.AppendLine("RUN echo goodbye world")
+		So(err, ShouldBeNil)
+		So(dockerfile.String(), ShouldEqual, "FROM debian\nRUN echo hello world\nRUN echo goodbye world")
+		So(dockerfile.Length(), ShouldEqual, 3)
+	})
+}
