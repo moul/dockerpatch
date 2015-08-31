@@ -40,6 +40,14 @@ func DockerfileRead(input io.Reader) (*Dockerfile, error) {
 	return &dockerfile, nil
 }
 
+func (d *Dockerfile) RemoveAt(i int) error {
+	if i >= 0 && i < d.Length() {
+		d.root.Children = append(d.root.Children[:i], d.root.Children[i+1:]...)
+		return nil
+	}
+	return fmt.Errorf("Cannot remove %d: index error", i)
+}
+
 // String returns a docker-readable Dockerfile
 func (d *Dockerfile) String() string {
 	lines := []string{}
@@ -175,4 +183,14 @@ func (d *Dockerfile) GetNodesByType(nodeType string) []*parser.Node {
 		}
 	}
 	return output
+}
+
+// NodeGetArgs returns the arguments of a node
+func NodeGetArgs(node *parser.Node) []string {
+	return strings.Split(node.Original, " ")[1:]
+}
+
+// NodeGetLine returns the arguments of a node as a string
+func NodeGetLine(node *parser.Node) string {
+	return strings.Join(NodeGetArgs(node), " ")
 }

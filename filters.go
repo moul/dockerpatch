@@ -32,5 +32,33 @@ func (d *Dockerfile) FilterOptimize() error {
 	}
 	d.RemoveNodesByType(command.Expose)
 	d.AppendLine(fmt.Sprintf("EXPOSE %s", strings.Join(globalExposedPorts, " ")))
+
+	hasChanged := true
+	for hasChanged {
+		hasChanged = false
+		for i, node := range d.root.Children {
+			switch node.Value {
+			case command.Run:
+				if i == d.Length() {
+					continue
+				}
+				next := d.root.Children[i+1]
+				if next.Value == command.Run {
+					nodeCommand := NodeGetLine(node)
+					nextCommand := NodeGetLine(next)
+					combined := fmt.Sprintf("RUN %s && %s", nodeCommand, nextCommand)
+					newNode, err := ParseLine(combined)
+					if err != nil {
+						return err
+					}
+					d.root.Children[i] = newNode
+					d.RemoveAt(i + 1)
+					hasChanged = true
+					break
+				}
+			}
+		}
+	}
+
 	return nil
 }
