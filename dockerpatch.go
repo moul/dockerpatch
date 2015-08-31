@@ -151,3 +151,17 @@ func (d *Dockerfile) AddNodeAfterFrom(node *parser.Node) error {
 	d.root.Children = newChildren
 	return nil
 }
+
+// Replace tries to replace a string with another in each lines
+func (d *Dockerfile) Replace(from, to string) error {
+	for i, node := range d.root.Children {
+		if strings.Contains(node.Original, from) {
+			newNode, err := ParseLine(strings.Replace(node.Original, from, to, -1))
+			if err != nil {
+				return err
+			}
+			d.root.Children[i] = newNode
+		}
+	}
+	return nil
+}
