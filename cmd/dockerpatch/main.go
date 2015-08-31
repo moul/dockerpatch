@@ -30,6 +30,10 @@ func main() {
 					Name:  "to-arm",
 					Usage: "Convert Dockerfile to armhf architecture",
 				},
+				cli.BoolFlag{
+					Name:  "disable-network",
+					Usage: "Remove network rules",
+				},
 			},
 		},
 	}
@@ -62,6 +66,12 @@ func CmdPatch(c *cli.Context) {
 	if c.Bool("to-arm") {
 		if dockerfile.FilterToArm("armhf") != nil {
 			logrus.Fatalf("dockerfile.FilterToArm failed: %v", err)
+		}
+	}
+
+	if c.Bool("disable-network") {
+		if dockerfile.FilterDisableNetwork() != nil {
+			logrus.Fatalf("dockerfile.FilterDisableNetwork failed: %v", err)
 		}
 	}
 
