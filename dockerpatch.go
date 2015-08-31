@@ -125,3 +125,29 @@ func (d *Dockerfile) PrependLine(line string) error {
 
 	return d.PrependNode(node)
 }
+
+// AddLineAfterFrom parses and add a line after from in the AST
+func (d *Dockerfile) AddLineAfterFrom(line string) error {
+	node, err := ParseLine(line)
+	if err != nil {
+		return err
+	}
+	return d.AddNodeAfterFrom(node)
+}
+
+// AddNodeAfterFrom adds a node after from in the AST
+func (d *Dockerfile) AddNodeAfterFrom(node *parser.Node) error {
+	if d.Length() == 0 {
+		return d.AppendNode(node)
+	}
+
+	firstNode := d.root.Children[0]
+	if firstNode.Value != command.From {
+		return d.PrependNode(node)
+	}
+
+	newChildren := []*parser.Node{firstNode, node}
+	newChildren = append(newChildren, d.root.Children[1:]...)
+	d.root.Children = newChildren
+	return nil
+}

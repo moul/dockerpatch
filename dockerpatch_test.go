@@ -238,5 +238,10 @@ func TestDockerfile(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(dockerfile.String(), ShouldEqual, "FROM debian\nRUN echo hello world\nRUN echo goodbye world")
 		So(dockerfile.Length(), ShouldEqual, 3)
+
+		err = dockerfile.AddLineAfterFrom("RUN echo after from")
+		So(err, ShouldBeNil)
+		So(dockerfile.String(), ShouldEqual, "FROM debian\nRUN echo after from\nRUN echo hello world\nRUN echo goodbye world")
+		So(dockerfile.Length(), ShouldEqual, 4)
 	})
 }
