@@ -28,11 +28,15 @@ func main() {
 			Flags: []cli.Flag{
 				cli.BoolFlag{
 					Name:  "to-arm",
-					Usage: "Convert Dockerfile to armhf architecture",
+					Usage: "Convert to armhf architecture",
 				},
 				cli.BoolFlag{
 					Name:  "disable-network",
 					Usage: "Remove network rules",
+				},
+				cli.BoolFlag{
+					Name:  "optimize",
+					Usage: "Optimize Dockerfile",
 				},
 			},
 		},
@@ -72,6 +76,12 @@ func CmdPatch(c *cli.Context) {
 	if c.Bool("disable-network") {
 		if dockerfile.FilterDisableNetwork() != nil {
 			logrus.Fatalf("dockerfile.FilterDisableNetwork failed: %v", err)
+		}
+	}
+
+	if c.Bool("optimize") {
+		if dockerfile.FilterOptimize() != nil {
+			logrus.Fatalf("dockerfile.FilterOptimize failed: %v", err)
 		}
 	}
 

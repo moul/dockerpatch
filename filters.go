@@ -23,3 +23,14 @@ func (d *Dockerfile) FilterDisableNetwork() error {
 	d.RemoveNodesByType(command.Expose)
 	return nil
 }
+
+func (d *Dockerfile) FilterOptimize() error {
+	globalExposedPorts := []string{}
+	for _, node := range d.GetNodesByType(command.Expose) {
+		nodeExposedPorts := strings.Split(node.Original, " ")[1:]
+		globalExposedPorts = append(globalExposedPorts, nodeExposedPorts...)
+	}
+	d.RemoveNodesByType(command.Expose)
+	d.AppendLine(fmt.Sprintf("EXPOSE %s", strings.Join(globalExposedPorts, " ")))
+	return nil
+}

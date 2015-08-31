@@ -49,26 +49,6 @@ EXPOSE 8083
 EXPOSE 8086
 EXPOSE 8090
 EXPOSE 8099`
-
-	ExampleDockerfileArmString = `FROM armbuild/ubuntu:14.04
-RUN apt-get update && apt-get install wget -y
-RUN wget http://s3.amazonaws.com/influxdb/influxdb_latest_armhf.deb
-RUN dpkg -i influxdb_latest_armhf.deb
-RUN rm -r /opt/influxdb/shared
-VOLUME /opt/influxdb/shared
-CMD /usr/bin/influxdb --pidfile /var/run/influxdb.pid -config /opt/influxdb/shared/config.toml
-EXPOSE 8083
-EXPOSE 8086
-EXPOSE 8090
-EXPOSE 8099`
-
-	ExampleDockerfileDisableNetworkString = `FROM ubuntu:14.04
-RUN apt-get update && apt-get install wget -y
-RUN wget http://s3.amazonaws.com/influxdb/influxdb_latest_amd64.deb
-RUN dpkg -i influxdb_latest_amd64.deb
-RUN rm -r /opt/influxdb/shared
-VOLUME /opt/influxdb/shared
-CMD /usr/bin/influxdb --pidfile /var/run/influxdb.pid -config /opt/influxdb/shared/config.toml`
 )
 
 func TestDockerfileFromString(t *testing.T) {
@@ -265,27 +245,5 @@ func TestDockerfile(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(dockerfile.String(), ShouldEqual, "FROM debian\nRUN echo after from\nRUN echo hello world\nRUN echo goodbye world")
 		So(dockerfile.Length(), ShouldEqual, 4)
-	})
-}
-
-func TestDockerfile_FilterToArm(t *testing.T) {
-	Convey("Testing Dockerfile.FilterToArm", t, func() {
-		dockerfile, err := DockerfileFromString(ExampleDockerfile)
-		So(err, ShouldBeNil)
-
-		err = dockerfile.FilterToArm("armhf")
-		So(err, ShouldBeNil)
-		So(dockerfile.String(), ShouldEqual, ExampleDockerfileArmString)
-	})
-}
-
-func TestDockerfile_FilterDisableNetwork(t *testing.T) {
-	Convey("Testing Dockerfile.FilterDisableNetwork", t, func() {
-		dockerfile, err := DockerfileFromString(ExampleDockerfile)
-		So(err, ShouldBeNil)
-
-		err = dockerfile.FilterDisableNetwork()
-		So(err, ShouldBeNil)
-		So(dockerfile.String(), ShouldEqual, ExampleDockerfileDisableNetworkString)
 	})
 }

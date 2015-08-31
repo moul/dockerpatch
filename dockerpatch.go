@@ -165,3 +165,14 @@ func (d *Dockerfile) Replace(from, to string) error {
 	}
 	return nil
 }
+
+// GetNodesByType returns nodes matching a type
+func (d *Dockerfile) GetNodesByType(nodeType string) []*parser.Node {
+	output := []*parser.Node{}
+	for _, node := range d.root.Children {
+		if node.Value == nodeType {
+			output = append(output, node)
+		}
+	}
+	return output
+}
