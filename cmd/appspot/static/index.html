@@ -21,10 +21,14 @@
        $scope.errors = null;
 
        $scope.checkModel = {
-         optimize: true,
+         optimize: false,
          disableNetwork: false,
          toArm: false,
        };
+
+       $scope.$watchCollection('checkModel', function() {
+         $scope.sendRequest();
+       });
 
        $scope.reqdata = "FROM ubuntu:14.04\n" +
                         "# This is the influxdb Dockerfile\n" +
@@ -98,18 +102,20 @@
                     <br />
                   </div>
                   <div class="row">
-                    <div class="col-md-9">
+                    <div class="col-md-12">
                       <div class="btn-group">
                         <label class="btn btn-primary" ng-model="checkModel.optimize" btn-checkbox>Optimize</label>
                         <label class="btn btn-primary" ng-model="checkModel.disableNetwork" btn-checkbox>No network</label>
                         <label class="btn btn-primary" ng-model="checkModel.toArm" btn-checkbox>To ARCH=arm</label>
                       </div>
                     </div>
+                    <!--
                     <div class="col-md-3">
                       <div class="form-group">
                         <button type="submit" class="btn btn-primary">Convert</button>
                       </div>
                     </div>
+                    -->
                   </div>
                 </div>
               </div>
@@ -122,7 +128,7 @@
               <legend>Output</legend>
               <div class="form-group">
                 <label for="output">Dockerfile</label>
-                <textarea class="form-control" rows="15" name="output" id="output">{{response.data}}{{errors.data}}</textarea>
+                <textarea class="form-control" rows="18" name="output" id="output">{{response.data}}{{errors.data}}</textarea>
               </div>
             </fieldset>
           </div>
