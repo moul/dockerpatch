@@ -123,7 +123,7 @@
                 <div class="row">
                   <label for="reqdata">Dockerfile</label>
                   <div ng-model="reqdata" name="reqdata" id="reqdata" language="dockerfile"
-                       ui-ace="{mode:'dockerfile',theme:'cobalt',onChange:inputChanged,onLoad:inputLoaded}">
+                       ui-ace="{mode:'dockerfile',theme:'cobalt',onChange:inputChanged,onLoad:inputLoaded,useWrapMode:true}">
                   </div>
                 </div>
                 <div class="row">
@@ -147,7 +147,7 @@
             <fieldset>
               <legend>Output</legend>
               <label>Dockerfile</label>
-              <div ui-ace="{mode:'dockerfile',theme:'cobalt',onLoad:outputLoaded}" readonly></div>
+              <div ui-ace="{mode:'dockerfile',theme:'cobalt',onLoad:outputLoaded,useWrapMode:true}" readonly></div>
             </fieldset>
           </div>
         </div>
