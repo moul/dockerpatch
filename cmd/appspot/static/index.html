@@ -19,11 +19,13 @@
     <script type="text/javascript">
      angular.module("dockerpatch", ['dockerpatch.controllers','ngAnimate','ui.bootstrap', 'ui.ace']);
      angular.module("dockerpatch.controllers", [])
-            .controller('DockerPatchCtrl', ['$scope', '$http', function($scope, $http) {
+            .controller('DockerPatchCtrl', ['$scope', '$http', '$interval', function($scope, $http, $interval) {
        $scope.requestType = 'post';
        $scope.url = '/convert';
        $scope.response = null;
        $scope.errors = null;
+
+       $scope.inputHasChanged = false;
 
        $scope.checkModel = {
          optimize: false,
@@ -34,6 +36,12 @@
        $scope.$watchCollection('checkModel', function() {
          $scope.sendRequest();
        });
+
+       var cron = $interval(function() {
+         if ($scope.inputHasChanged) {
+           $scope.sendRequest();
+         }
+       }, 1000);
 
        $scope.reqdata = "FROM ubuntu:14.04\n" +
                         "# This is the influxdb Dockerfile\n" +
@@ -59,10 +67,11 @@
          $scope.outputEditor = _editor;
        };
        $scope.inputChanged = function(e) {
-         console.log($scope.inputEditor.getValue());
+         $scope.inputHasChanged = true;
        };
 
        $scope.sendRequest = function(){
+         $scope.inputHasChanged = false;
          var data = {
            Dockerfile: $scope.reqdata,
            Options: {
