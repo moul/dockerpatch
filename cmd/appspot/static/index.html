@@ -1,0 +1,133 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Docker Patch</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.3/angular.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.3/angular-animate.js"></script>
+    <script src="//angular-ui.github.io/bootstrap/ui-bootstrap-tpls-0.13.3.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/0.13.3/ui-bootstrap.min.js"></script>
+
+    <script type="text/javascript">
+     angular.module("dockerpatch", ['dockerpatch.controllers','ngAnimate','ui.bootstrap']);
+     angular.module("dockerpatch.controllers", [])
+            .controller('DockerPatchCtrl', ['$scope', '$http', function($scope,$http) {
+       $scope.requestType = 'post';
+       $scope.url = '/convert';
+       $scope.response = null;
+       $scope.errors = null;
+
+       $scope.checkModel = {
+         optimize: true,
+         disableNetwork: false,
+         toArm: false,
+       };
+
+       $scope.reqdata = "FROM ubuntu:14.04\n" +
+                        "# This is the influxdb Dockerfile\n" +
+                        "\n" +
+                        "RUN apt-get update && apt-get install wget -y\n" +
+                        "RUN wget http://s3.amazonaws.com/influxdb/influxdb_latest_amd64.deb\n" +
+                        "RUN dpkg -i influxdb_latest_amd64.deb\n" +
+                        "RUN rm -r /opt/influxdb/shared\n" +
+                        "\n" +
+                        "VOLUME /opt/influxdb/shared\n" +
+                        "\n" +
+                        "CMD /usr/bin/influxdb --pidfile /var/run/influxdb.pid -config /opt/influxdb/shared/config.toml\n" +
+                        "\n" +
+                        "EXPOSE 8083\n" +
+                        "EXPOSE 8086\n" +
+                        "EXPOSE 8090\n" +
+                        "EXPOSE 8099\n";
+
+       $scope.sendRequest = function(){
+         var data = {
+           Dockerfile: $scope.reqdata,
+           Options: {
+             ToArm: $scope.checkModel.toArm,
+             Optimize: $scope.checkModel.optimize,
+             DisableNetwork: $scope.checkModel.disableNetwork,
+           }
+         };
+         $http.post($scope.url, data)
+              .success(function(data,status,headers,config) {
+           $scope.errors = {};
+           $scope.response = {};
+           $scope.response.data = data;
+           $scope.response.status = status;
+           $scope.response.headers = headers;
+           $scope.response.config = config;
+         })
+              .error(function(data,status,headers,config) {
+           $scope.errors = {};
+           $scope.response = {};
+           $scope.errors.data = data;
+           $scope.errors.status = status;
+           $scope.errors.headers = headers;
+           $scope.errors.config = config;
+         });
+       };
+     }]);
+    </script>
+
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+  </head>
+  <body ng-app="dockerpatch">
+    <div class="container" ng-controller="DockerPatchCtrl">
+      <div class="row">
+        <div class="page-header">
+          <h1>Docker Patch <small>Read, write, manipulate, convert & apply filters to Dockerfiles</small></h1>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-6">
+          <form name="dpform" ng-submit="sendRequest()" class="well">
+            <fieldset>
+              <legend>Input</legend>
+              <div class="form-group" ng-class="{'has-error': dpform.reqdata.$invalid}">
+                <div class="container-fluid">
+                  <div class="row">
+                    <label for="reqdata">Dockerfile</label>
+                    <textarea class="form-control" rows="15" name="reqdata" id="reqdata" ng-model="reqdata" required></textarea>
+                    <span ng-show="dpform.reqdata.$invalid" class="help-block">Invalid Dockerfile</span>
+                  </div>
+                  <div class="row">
+                    <br />
+                  </div>
+                  <div class="row">
+                    <div class="col-md-9">
+                      <div class="btn-group">
+                        <label class="btn btn-primary" ng-model="checkModel.optimize" btn-checkbox>Optimize</label>
+                        <label class="btn btn-primary" ng-model="checkModel.disableNetwork" btn-checkbox>No network</label>
+                        <label class="btn btn-primary" ng-model="checkModel.toArm" btn-checkbox>To ARCH=arm</label>
+                      </div>
+                    </div>
+                    <div class="col-md-3">
+                      <div class="form-group">
+                        <button type="submit" class="btn btn-primary">Convert</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </fieldset>
+          </form>
+        </div>
+        <div class="col-md-6">
+          <div class="well">
+            <fieldset>
+              <legend>Output</legend>
+              <div class="form-group">
+                <label for="output">Dockerfile</label>
+                <textarea class="form-control" rows="15" name="output" id="output">{{response.data}}{{errors.data}}</textarea>
+              </div>
+            </fieldset>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

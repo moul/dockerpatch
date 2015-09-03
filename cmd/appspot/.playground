@@ -1,0 +1,8 @@
+{
+    "project_name": "Docker Patch",
+    "project_description": "Read, write, manipulate, convert & apply filters to Dockerfiles",
+    "show_files": [
+        "app.go",
+        "app.yaml"
+    ]
+}
