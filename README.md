@@ -3,6 +3,12 @@
 
 [![GoDoc](https://godoc.org/github.com/moul/dockerpatch?status.svg)](https://godoc.org/github.com/moul/dockerpatch)
 
+## Web demo
+
+A demo is available on [dockerpatch.appspot.com](https://dockerpatch.appspot.com)
+
+[![Screenshot](https://raw.githubusercontent.com/moul/dockerpatch/master/assets/screen.png)](https://dockerpatch.appspot.com)
+
 ## Install
 
 ```bash
