@@ -31,7 +31,9 @@ func (d *Dockerfile) FilterOptimize() error {
 		globalExposedPorts = append(globalExposedPorts, nodeExposedPorts...)
 	}
 	d.RemoveNodesByType(command.Expose)
-	d.AppendLine(fmt.Sprintf("EXPOSE %s", strings.Join(globalExposedPorts, " ")))
+	if len(globalExposedPorts) > 0 {
+		d.AppendLine(fmt.Sprintf("EXPOSE %s", strings.Join(globalExposedPorts, " ")))
+	}
 
 	hasChanged := true
 	for hasChanged {
