@@ -10,11 +10,16 @@
     <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.3/angular-animate.js"></script>
     <script src="//angular-ui.github.io/bootstrap/ui-bootstrap-tpls-0.13.3.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/0.13.3/ui-bootstrap.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/ace/1.2.0/ace.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/ace/1.2.0/mode-dockerfile.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/ace/1.2.0/theme-cobalt.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/ace/1.2.0/worker-javascript.js"></script>
+    <script src="//angular-ui.github.io/ui-ace/dist/ui-ace.min.js"></script>
 
     <script type="text/javascript">
-     angular.module("dockerpatch", ['dockerpatch.controllers','ngAnimate','ui.bootstrap']);
+     angular.module("dockerpatch", ['dockerpatch.controllers','ngAnimate','ui.bootstrap', 'ui.ace']);
      angular.module("dockerpatch.controllers", [])
-            .controller('DockerPatchCtrl', ['$scope', '$http', function($scope,$http) {
+            .controller('DockerPatchCtrl', ['$scope', '$http', function($scope, $http) {
        $scope.requestType = 'post';
        $scope.url = '/convert';
        $scope.response = null;
@@ -45,7 +50,17 @@
                         "EXPOSE 8083\n" +
                         "EXPOSE 8086\n" +
                         "EXPOSE 8090\n" +
-                        "EXPOSE 8099\n";
+                        "EXPOSE 8099";
+
+       $scope.inputLoaded = function(_editor) {
+         $scope.inputEditor = _editor;
+       };
+       $scope.outputLoaded = function(_editor) {
+         $scope.outputEditor = _editor;
+       };
+       $scope.inputChanged = function(e) {
+         console.log($scope.inputEditor.getValue());
+       };
 
        $scope.sendRequest = function(){
          var data = {
@@ -64,6 +79,7 @@
            $scope.response.status = status;
            $scope.response.headers = headers;
            $scope.response.config = config;
+           $scope.outputEditor.setValue(data, 1);
          })
               .error(function(data,status,headers,config) {
            $scope.errors = {};
@@ -72,12 +88,15 @@
            $scope.errors.status = status;
            $scope.errors.headers = headers;
            $scope.errors.config = config;
+           $scope.outputEditor.setValue(data, 1);
          });
        };
      }]);
     </script>
 
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/github.min.css">
+    <style>.ace_editor { height: 400px; }</style>
   </head>
   <body ng-app="dockerpatch">
     <div class="container" ng-controller="DockerPatchCtrl">
@@ -91,31 +110,23 @@
           <form name="dpform" ng-submit="sendRequest()" class="well">
             <fieldset>
               <legend>Input</legend>
-              <div class="form-group" ng-class="{'has-error': dpform.reqdata.$invalid}">
-                <div class="container-fluid">
-                  <div class="row">
-                    <label for="reqdata">Dockerfile</label>
-                    <textarea class="form-control" rows="15" name="reqdata" id="reqdata" ng-model="reqdata" required></textarea>
-                    <span ng-show="dpform.reqdata.$invalid" class="help-block">Invalid Dockerfile</span>
+              <div class="container-fluid">
+                <div class="row">
+                  <label for="reqdata">Dockerfile</label>
+                  <div ng-model="reqdata" name="reqdata" id="reqdata" language="dockerfile"
+                       ui-ace="{mode:'dockerfile',theme:'cobalt',onChange:inputChanged,onLoad:inputLoaded}">
                   </div>
-                  <div class="row">
-                    <br />
-                  </div>
-                  <div class="row">
-                    <div class="col-md-12">
-                      <div class="btn-group">
-                        <label class="btn btn-primary" ng-model="checkModel.optimize" btn-checkbox>Optimize</label>
-                        <label class="btn btn-primary" ng-model="checkModel.disableNetwork" btn-checkbox>No network</label>
-                        <label class="btn btn-primary" ng-model="checkModel.toArm" btn-checkbox>To ARCH=arm</label>
-                      </div>
+                </div>
+                <div class="row">
+                  <br />
+                </div>
+                <div class="row">
+                  <div class="col-md-12">
+                    <div class="btn-group">
+                      <label class="btn btn-primary" ng-model="checkModel.optimize" btn-checkbox>Optimize</label>
+                      <label class="btn btn-primary" ng-model="checkModel.disableNetwork" btn-checkbox>No network</label>
+                      <label class="btn btn-primary" ng-model="checkModel.toArm" btn-checkbox>To ARCH=arm</label>
                     </div>
-                    <!--
-                    <div class="col-md-3">
-                      <div class="form-group">
-                        <button type="submit" class="btn btn-primary">Convert</button>
-                      </div>
-                    </div>
-                    -->
                   </div>
                 </div>
               </div>
@@ -126,10 +137,8 @@
           <div class="well">
             <fieldset>
               <legend>Output</legend>
-              <div class="form-group">
-                <label for="output">Dockerfile</label>
-                <textarea class="form-control" rows="18" name="output" id="output">{{response.data}}{{errors.data}}</textarea>
-              </div>
+              <label>Dockerfile</label>
+              <div ui-ace="{mode:'dockerfile',theme:'cobalt',onLoad:outputLoaded}" readonly></div>
             </fieldset>
           </div>
         </div>
