@@ -24,24 +24,27 @@ func (d *Dockerfile) FilterDisableNetwork() error {
 	return nil
 }
 
-func (d *Dockerfile) FilterOptimize() error {
-	globalExposedPorts := []string{}
-	for _, node := range d.GetNodesByType(command.Expose) {
-		nodeExposedPorts := strings.Split(node.Original, " ")[1:]
-		globalExposedPorts = append(globalExposedPorts, nodeExposedPorts...)
+func (d *Dockerfile) combineNodesByType(nodeType string) error {
+	combinedArgs := []string{}
+	for _, node := range d.GetNodesByType(nodeType) {
+		nodeArgs := strings.Split(node.Original, " ")[1:]
+		combinedArgs = append(combinedArgs, nodeArgs...)
 	}
-	d.RemoveNodesByType(command.Expose)
-	if len(globalExposedPorts) > 0 {
-		d.AppendLine(fmt.Sprintf("EXPOSE %s", strings.Join(globalExposedPorts, " ")))
+	d.RemoveNodesByType(nodeType)
+	if len(combinedArgs) > 0 {
+		d.AppendLine(fmt.Sprintf("%s %s", strings.ToUpper(nodeType), strings.Join(combinedArgs, " ")))
 	}
+	return nil
+}
 
+func (d *Dockerfile) combineFollowingRunNodes() error {
 	hasChanged := true
 	for hasChanged {
 		hasChanged = false
 		for i, node := range d.root.Children {
 			switch node.Value {
 			case command.Run:
-				if i == d.Length() {
+				if i >= d.Length()-1 {
 					continue
 				}
 				next := d.root.Children[i+1]
@@ -60,6 +63,17 @@ func (d *Dockerfile) FilterOptimize() error {
 				}
 			}
 		}
+	}
+	return nil
+}
+
+func (d *Dockerfile) FilterOptimize() error {
+	if err := d.combineNodesByType(command.Expose); err != nil {
+		return err
+	}
+
+	if err := d.combineFollowingRunNodes(); err != nil {
+		return err
 	}
 
 	return nil
