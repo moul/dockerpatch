@@ -6,8 +6,8 @@ import (
 	"io"
 	"strings"
 
-	"github.com/docker/docker/builder/command"
-	"github.com/docker/docker/builder/parser"
+	"github.com/docker/docker/builder/dockerfile/command"
+	"github.com/docker/docker/builder/dockerfile/parser"
 )
 
 type Dockerfile struct {
