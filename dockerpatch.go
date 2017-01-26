@@ -31,7 +31,9 @@ func DockerfileFromString(input string) (*Dockerfile, error) {
 func DockerfileRead(input io.Reader) (*Dockerfile, error) {
 	dockerfile := Dockerfile{}
 
-	root, err := parser.Parse(input)
+	d := parser.Directive{LookingForDirectives: true}
+	parser.SetEscapeToken(parser.DefaultEscapeToken, &d)
+	root, err := parser.Parse(input, &d)
 	if err != nil {
 		return nil, err
 	}
