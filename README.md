@@ -7,7 +7,7 @@
 
 A demo is available on [dockerpatch.appspot.com](https://dockerpatch.appspot.com)
 
-[![Screenshot](https://raw.githubusercontent.com/moul/dockerpatch/master/assets/screen.png)](https://dockerpatch.appspot.com)
+[![Screenshot](https://raw.githubusercontent.com/moul/dockerpatch/master/assets/screen.png)](https://dockerpatch.appspot.com) [![GuardRails badge](https://badges.production.guardrails.io/moul/dockerpatch.svg)](https://www.guardrails.io)
 
 ## Install
 
